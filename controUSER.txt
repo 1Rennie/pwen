@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Validation;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using E_CARGA.Models;
+using E_carga.Models;
+
+namespace E_carga.Controllers
+{
+    //[Authorize(Roles = "Company")]
+
+    public class UsersxController : Controller
+    {
+
+
+        private ApplicationDbContext db = new ApplicationDbContext();
+        //*Vai a base de dados procurar pelo o id ou o nome 
+        //
+        // GET: Users
+        public ActionResult Index(string SearchName)
+        {
+            // para a procura        var user = from cr in db.Userinfo select cr;
+            List<ApplicationUser> users = db.Users.ToList();
+            List<UserList> infoUsers = new List<UserList>();
+
+            foreach (ApplicationUser user in users)
+                infoUsers.Add(new UserList(db, user));
+
+            return View(infoUsers);
+
+
+            //	var userid = from cr in db.Userinfo select cr;
+
+
+
+            //if (!String.IsNullOrEmpty(idToLookFOr.ToString())) {
+            //if(idToLookFOr > 0 && idToLookFOr !=null) { 
+            //var number = db.Userinfo.Single(x => x.NumConta == idToLookFOr);
+            //		return View(number);
+
+
+
+            // ADICIONAR UM ELSE PARA FAZER O REDICERTOLOGIN
+
+
+
+            //	if (!String.IsNullOrEmpty(SearchName))
+            //{
+            //	user = user.Where(c => c.PrimeiroNome.Contains(SearchName));
+
+            ////	return View(user);
+            //}
+
+            //  return View(user);
+            // return View(db.Userinfo.ToList());
+
+
+        }
+
+        // GET: Users/Details/5
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Userx userx = db.Userinfo.Find(id);
+            if (userx == null)
+            {
+                return HttpNotFound();
+            }
+            return View(userx);
+        }
+
+
+
+        // GET: Users/Edit/5
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            ApplicationUser applicationUser = db.Users.Find(id);
+            if (applicationUser == null)
+            {
+                return HttpNotFound();
+            }
+            return View(applicationUser);
+        }
+
+        // GET: Users/Validate
+        public ActionResult Validate(string id)
+        {
+            ApplicationUser user = ApplicationUser.GetUser(db, id);
+            user.Validated = true;
+
+            db.Entry(user).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+
+        // GET: Users/Edit/5
+        public ActionResult Edit(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            ApplicationUser applicationUser = db.Users.Find(id);
+            if (applicationUser == null)
+            {
+                return HttpNotFound();
+            }
+            return View(applicationUser);
+        }
+
+
+
+        // POST: Users/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(ApplicationUser applicationUser)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = db.Users.FirstOrDefault(u => u.Id == applicationUser.Id);
+
+                if (user != null)
+                {
+                    applicationUser.PasswordHash = user.PasswordHash;
+                    applicationUser.Validated = user.Validated;
+                    applicationUser.UserName = user.UserName;
+                    applicationUser.RegistryDate = user.RegistryDate;
+                    applicationUser.SecurityStamp = user.SecurityStamp;
+
+                    var local = db.Set<ApplicationUser>()
+                         .Local
+                         .FirstOrDefault(f => f.Id == applicationUser.Id);
+
+                    db.Entry(local).State = System.Data.Entity.EntityState.Detached;
+
+                    db.Entry(applicationUser).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                    return View();
+                }
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index");
+        }
+
+
+
+        // GET: Users/Delete/5
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            ApplicationUser applicationUser = db.Users.Find(id);
+            if (applicationUser == null)
+            {
+                return HttpNotFound();
+            }
+            return View(applicationUser);
+        }
+
+        // POST: Users/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(string id)
+        {
+            ApplicationUser applicationUser = db.Users.Find(id);
+            db.Users.Remove(applicationUser);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
